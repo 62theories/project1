@@ -98,56 +98,128 @@ class App extends React.Component {
 	render() {
 		if (this.state.deviceState === 1) {
 			return (
-				<div>
-					<button onClick={this.handleScanButton}>scan</button>
+				<div
+					style={{ backgroundColor: "#272b30", height: "100%" }}
+					className='container-fluid'
+				>
+					<div
+						style={{ height: "40%" }}
+						className='d-flex align-items-end justify-content-center'
+					>
+						<h4 className='text-light'>
+							Welcome to WiFi Attack Detector
+						</h4>
+					</div>
+					<div
+						style={{ marginTop: "15px" }}
+						className='d-flex justify-content-center'
+					>
+						<button
+							onClick={this.handleScanButton}
+							className='btn btn-success btn-lg'
+						>
+							scan for your device
+						</button>
+					</div>
 				</div>
 			)
 		} else if (this.state.deviceState === 2) {
 			return (
-				<div>
-					<button type='button' onClick={this.startTraining}>
-						start learning
-					</button>
-					<button type='button' onClick={this.handleCustomize}>
-						use customize value
-					</button>
+				<div
+					style={{ backgroundColor: "#272b30", height: "100%" }}
+					className='d-flex align-items-center justify-content-center'
+				>
+					<div>
+						<div style={{ marginBottom: "20px" }}>
+							<button
+								type='button'
+								className='btn-block btn-lg btn-primary'
+								onClick={this.startTraining}
+							>
+								start learning
+							</button>
+						</div>
+						<div>
+							<button
+								type='button'
+								className='btn-block btn-lg btn-success'
+								onClick={this.handleCustomize}
+							>
+								use customize value
+							</button>
+						</div>
+					</div>
 				</div>
 			)
 		} else if (this.state.deviceState == 3) {
-			return <div>Training</div>
+			return (
+				<div
+					style={{ backgroundColor: "#272b30", height: "100%" }}
+					className='d-flex align-items-center justify-content-center'
+				>
+					<h4 className='text-light'>Training, Please wait.&nbsp;</h4>
+
+					<div class='spinner-border text-light' role='status'>
+						<span class='sr-only'>Loading...</span>
+					</div>
+				</div>
+			)
 		} else if (this.state.deviceState == 4) {
 			return (
-				<div>
-					<CurrentValue />
-					<form onSubmit={this.onSubmit}>
-						<input
-							name='deauthInput'
-							onChange={this.handleInput}
-							type='number'
-							required
-							placeholder='deauth'
-						/>
-						<input
-							name='beaconInput'
-							onChange={this.handleInput}
-							type='number'
-							required
-							placeholder='beacon'
-						/>
-						<input
-							name='probeInput'
-							onChange={this.handleInput}
-							type='number'
-							required
-							placeholder='probe'
-						/>
-						<button>send value</button>
-					</form>
+				<div
+					style={{ backgroundColor: "#272b30", height: "100%" }}
+					className='d-flex align-items-center justify-content-center'
+				>
+					<div>
+						<form
+							onSubmit={this.onSubmit}
+							style={{ margin: "5px" }}
+						>
+							<div className='form-group'>
+								<input
+									name='deauthInput'
+									onChange={this.handleInput}
+									type='number'
+									required
+									placeholder='deauth'
+									autoComplete='off'
+								/>
+							</div>
+							<div className='form-group'>
+								<input
+									name='beaconInput'
+									onChange={this.handleInput}
+									type='number'
+									required
+									placeholder='beacon'
+									autoComplete='off'
+								/>
+							</div>
+							<div className='form-group'>
+								<input
+									name='probeInput'
+									onChange={this.handleInput}
+									type='number'
+									required
+									placeholder='probe'
+									autoComplete='off'
+								/>
+							</div>
+
+							<button className='btn-block btn-lg btn-success'>
+								send value
+							</button>
+						</form>
+						<CurrentValue />
+					</div>
 				</div>
 			)
 		} else if (this.state.deviceState === 5) {
 			return (
-				<div>
+				<div
+					style={{ backgroundColor: "#272b30", height: "100%" }}
+					className='d-flex align-items-center justify-content-center'
+				>
 					<CurrentAttack />
 				</div>
 			)

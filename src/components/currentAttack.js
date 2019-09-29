@@ -29,12 +29,14 @@ class currentAttack extends React.Component {
 	render() {
 		return (
 			<div>
-				<div>
-					<span>
-						lastest attck:{this.state.attackDetail} at{" "}
-						{`${new Date()}`}
-					</span>
+				<div className='text-center'>
+					<h4 className='text-light'>
+						Lastest attck: {this.state.attackDetail}
+					</h4>
 				</div>
+				{this.state.attackDetail === null ? null : (
+					<h4 className='text-light'>At {`${new Date()}`}</h4>
+				)}
 			</div>
 		)
 	}

@@ -55,15 +55,26 @@ class currentValue extends React.Component {
 
 	render() {
 		return (
-			<div>
+			<div
+				className='d-flex justify-content-center'
+				style={{ marginTop: "20px" }}
+			>
 				<div>
-					<span>deauthMax:{this.state.deauthMax}</span>
-				</div>
-				<div>
-					<span>beaconMax:{this.state.beaconMax}</span>
-				</div>
-				<div>
-					<span>probeMax:{this.state.probeMax}</span>
+					<div>
+						<h5 className='text-light'>
+							Max Deauth:{this.state.deauthMax}
+						</h5>
+					</div>
+					<div>
+						<h5 className='text-light'>
+							Max beacon:{this.state.beaconMax}
+						</h5>
+					</div>
+					<div>
+						<h5 className='text-light'>
+							Max probe:{this.state.probeMax}
+						</h5>
+					</div>
 				</div>
 			</div>
 		)

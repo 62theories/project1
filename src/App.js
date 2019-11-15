@@ -8,9 +8,26 @@ class App extends React.Component {
 		deauthInput: "",
 		beaconInput: "",
 		probeInput: "",
-		deviceState: 1
+		deviceState: 1,
+		isChoice: false
 	}
 
+	componentDidMount() {
+		const stateRef = firebase.database().ref("Project/state")
+		stateRef.on("value", snapshot => {
+			let items = snapshot.val()
+			// let newState = []
+			// for (let item in items) {
+			// 	newState.push({
+			// 		item_id: item,
+			// 		value: items[item]
+			// 	})
+			// }
+			// console.log(newState[0].value)
+			console.log(items)
+			this.setState({ deviceState: items, isChoice: false })
+		})
+	}
 	bluetoothDevice = null
 	server = null
 
@@ -29,7 +46,7 @@ class App extends React.Component {
 				"gattserverdisconnected",
 				() => console.log("> Bluetooth Device disconnected")
 			)
-			this.setState({ deviceState: 2 })
+			this.setState({ isChoice: true })
 		} catch (error) {
 			console.log("error caught: " + error)
 		}
@@ -71,7 +88,7 @@ class App extends React.Component {
 				"4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 			)
 			await characteristics.writeValue(new Uint8Array([0x4]))
-			this.setState({ deviceState: 3 })
+			this.setState({ deviceState: 5 })
 			setTimeout(() => this.setState({ deviceState: 5 }), 15000)
 			console.log("start training")
 		} catch (error) {
@@ -87,8 +104,9 @@ class App extends React.Component {
 			const characteristics = await service.getCharacteristic(
 				"4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 			)
+			this.setState({ deviceState: 5 })
 			await characteristics.writeValue(new Uint8Array([0x5]))
-			this.setState({ deviceState: 4 })
+
 			console.log("start receiving realtime value")
 		} catch (error) {
 			console.log("error is" + error)
@@ -97,61 +115,63 @@ class App extends React.Component {
 
 	render() {
 		if (this.state.deviceState === 1) {
-			return (
-				<div
-					style={{ backgroundColor: "#272b30", height: "100%" }}
-					className='container-fluid'
-				>
+			if (!this.state.isChoice) {
+				return (
 					<div
-						style={{ height: "40%" }}
-						className='d-flex align-items-end justify-content-center'
+						style={{ backgroundColor: "#272b30", height: "100%" }}
+						className='container-fluid'
 					>
-						<h4 className='text-light'>
-							Welcome to WiFi Attack Detector
-						</h4>
-					</div>
-					<div
-						style={{ marginTop: "15px" }}
-						className='d-flex justify-content-center'
-					>
-						<button
-							onClick={this.handleScanButton}
-							className='btn btn-success btn-lg'
+						<div
+							style={{ height: "40%" }}
+							className='d-flex align-items-end justify-content-center'
 						>
-							scan for your device
-						</button>
-					</div>
-				</div>
-			)
-		} else if (this.state.deviceState === 2) {
-			return (
-				<div
-					style={{ backgroundColor: "#272b30", height: "100%" }}
-					className='d-flex align-items-center justify-content-center'
-				>
-					<div>
-						<div style={{ marginBottom: "20px" }}>
+							<h4 className='text-light'>
+								Welcome to WiFi Attack Detector
+							</h4>
+						</div>
+						<div
+							style={{ marginTop: "15px" }}
+							className='d-flex justify-content-center'
+						>
 							<button
-								type='button'
-								className='btn-block btn-lg btn-primary'
-								onClick={this.startTraining}
+								onClick={this.handleScanButton}
+								className='btn btn-success btn-lg'
 							>
-								start learning
+								scan for your device
 							</button>
 						</div>
+					</div>
+				)
+			} else {
+				return (
+					<div
+						style={{ backgroundColor: "#272b30", height: "100%" }}
+						className='d-flex align-items-center justify-content-center'
+					>
 						<div>
-							<button
-								type='button'
-								className='btn-block btn-lg btn-success'
-								onClick={this.handleCustomize}
-							>
-								use customize value
-							</button>
+							<div style={{ marginBottom: "20px" }}>
+								<button
+									type='button'
+									className='btn-block btn-lg btn-primary'
+									onClick={this.startTraining}
+								>
+									start learning
+								</button>
+							</div>
+							<div>
+								<button
+									type='button'
+									className='btn-block btn-lg btn-success'
+									onClick={this.handleCustomize}
+								>
+									use customize value
+								</button>
+							</div>
 						</div>
 					</div>
-				</div>
-			)
-		} else if (this.state.deviceState == 3) {
+				)
+			}
+		} else if (this.state.deviceState === 2) {
 			return (
 				<div
 					style={{ backgroundColor: "#272b30", height: "100%" }}
@@ -164,7 +184,7 @@ class App extends React.Component {
 					</div>
 				</div>
 			)
-		} else if (this.state.deviceState == 4) {
+		} else if (this.state.deviceState == 3) {
 			return (
 				<div
 					style={{ backgroundColor: "#272b30", height: "100%" }}
@@ -214,13 +234,24 @@ class App extends React.Component {
 					</div>
 				</div>
 			)
-		} else if (this.state.deviceState === 5) {
+		} else if (this.state.deviceState == 4) {
 			return (
 				<div
 					style={{ backgroundColor: "#272b30", height: "100%" }}
 					className='d-flex align-items-center justify-content-center'
 				>
 					<CurrentAttack />
+				</div>
+			)
+		} else if (this.state.deviceState === 5) {
+			return (
+				<div
+					style={{ backgroundColor: "#272b30", height: "100%" }}
+					className='d-flex align-items-center justify-content-center'
+				>
+					<div class='spinner-border text-light' role='status'>
+						<span class='sr-only'>Loading...</span>
+					</div>
 				</div>
 			)
 		}

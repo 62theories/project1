@@ -365,6 +365,13 @@ void detectAttack() {
             //delay(4000);
             //TD32_Push_Firebase("Project/train", String(deauthCountMax));
             //delay(4000);
+            delay(4000);
+           TD32_Set_Firebase("Project/deauthmax", String(deauthCountMax)); 
+           delay(4000);
+           TD32_Set_Firebase("Project/beaconmax", String(beaconCountMax));
+           delay(4000);
+           TD32_Set_Firebase("Project/probemax", String(probeCountMax));
+           delay(4000);
             trainingend = true;
           }    
        

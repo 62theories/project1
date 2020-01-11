@@ -1,47 +1,27 @@
-#include <WiFi.h>
-#include <map>
-#include <BLEDevice.h>
-#include <BLEUtils.h>
-#include <BLEServer.h>
-////------------------------------
+#include "FirebaseESP8266.h"
+#include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
+//FirebaseESP8266.h must be included before ESP8266WiFi.h
 
-//--------------------------------------------------------
-#define SSID "senorita"
-#define PASSWORD "bally000"
-#define FIREBASE_HOST "https://finalprojectcoe.firebaseio.com/"
+#define FIREBASE_HOST "finalprojectcoe.firebaseio.com"
 #define FIREBASE_AUTH "a0RKKalOcerf7tZngMLTYwar8eMahjUvppIcoXpR"
-//--------------------------------------------------------
-/* ฟังกชั่น สำหรับ รับและส่งข้อมูลไปยัง Firebase ใช้สำหรับ ESP32 */
-String  TD32_Get_Firebase(String path );               // รับค่า path จาก Firebase
-int     TD32_Set_Firebase(String path, String value, bool push = false ); // ส่งค่าขึ้น Firebase  (ทับข้อมูลเดิมใน path เดิม)
-int     TD32_Push_Firebase(String path, String value); // ส่งค่าขึ้น Firebase แบบ Pushing data  (เพิ่มเข้าไปใหม่เรื่อยๆใน path เดิม)
-//--------------------------------------------------------
+#define WIFI_SSID "senorita"
+#define WIFI_PASSWORD "ballball"
 
+//Define FirebaseESP8266 data object
+FirebaseData firebaseData;
+// include ESP8266 Non-OS SDK functions
+extern "C" {
+#include "user_interface.h"
+}
 
-////WiFi
-// include Non-OS SDK functions
-#include "esp_wifi.h"
-const wifi_promiscuous_filter_t filt = {
-  .filter_mask = WIFI_PROMIS_FILTER_MASK_MGMT | WIFI_PROMIS_FILTER_MASK_DATA
-};
-typedef struct {
-  uint8_t mac[6];
-} __attribute__((packed)) MacAddr;
+String arr1[100];
+String arr2[100];
 
-typedef struct {
-  int16_t fctl;
-  int16_t duration;
-  MacAddr da;
-  MacAddr sa;
-  MacAddr bssid;
-  int16_t seqctl;
-  unsigned char payload[];
-} __attribute__((packed)) WifiMgmtHdr;
+int arr1c = 0;
+int arr2c = 0;
 
-
-
-// ===== SETTINGS ===== //
+//// ===== SETTINGS ===== //
 #define LED 2              /* LED pin (2=built-in LED) */
 #define LED_INVERT true    /* Invert HIGH/LOW for LED */
 #define SERIAL_BAUD 115200 /* Baudrate for serial communication */
@@ -49,8 +29,8 @@ typedef struct {
 #define PKT_RATE 5         /* Min. packets before it gets recognized as an attack */
 #define PKT_TIME 1         /* Min. interval (CH_TIME*CH_RANGE) before it gets recognized as an attack */
 
-// Channels to scan on (US=1-11, EU=1-13, JAP=1-14)
-const short channels[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13/*,14*/ };
+//// Channels to scan on (US=1-11, EU=1-13, JAP=1-14)
+const short channels[] = { 1,2,3,4,5,6,7,8,9,10,11,12,13/*,14*/ };
 
 // ===== Runtime variables ===== //
 int ch_index { 0 };               // Current index of channel array
@@ -58,501 +38,256 @@ int packet_rate { 0 };            // Deauth packet counter (resets with each upd
 int attack_counter { 0 };         // Attack counter
 unsigned long update_time { 0 };  // Last update time
 unsigned long ch_time { 0 };      // Last channel hop time
-int period = 0;
-bool found = false;
-bool configDone = false;
-bool customizeDone = false;
-// variables added for training experiment
-bool trainingend = false;
-int count = 0;
-int deauthCountMax = 0;
-int probeCountMax = 0;
-int beaconCountMax = 0;
-int temp1, temp2, temp3;
 
-//
-std::map<uint8_t*, int> memforbeacon;
-std::map<uint8_t*, int> memfordeauth;
-std::map<uint8_t*, int> memforprobe;
-std::map<uint8_t*, int>::iterator it;
+bool test = false;
 
-// ===== Sniffer function ===== //
-void sniffer(void* buff, wifi_promiscuous_pkt_type_t type) {
-  //Serial.println("packet incoming");
-  std::map<uint8_t*, int> ::iterator itrfordeauth;
-  std::map<uint8_t*, int> ::iterator itrforbeacon;
-  std::map<uint8_t*, int> ::iterator itrforprobe;
-  if (type == WIFI_PKT_MGMT) {
-    // Serial.println("packet caught");
-    wifi_promiscuous_pkt_t *p = (wifi_promiscuous_pkt_t*)buff;
-    int len = p->rx_ctrl.sig_len;
-    WifiMgmtHdr *wh = (WifiMgmtHdr*)p->payload;
-    len -= sizeof(WifiMgmtHdr);
-    if (len < 0) return;
-    int fctl = ntohs(wh->fctl);
-
-    //  byte pkt_type = buf[12]; // second half of frame control field
-    //  byte* addr_a = &buf[16]; // first MAC address
-    //  byte* addr_b = &buf[22]; // second MAC address
-
-    // If captured packet is a deauthentication or dissassociaten frame
-    //
-    MacAddr addr_aa = (wh->da);
-    byte* addr_a =  addr_aa.mac;
-    MacAddr addr_bb = (wh->sa);
-    byte* addr_b =  addr_bb.mac;
-    // Serial.println(fctl,HEX);
-    //
-    if (fctl == 0x0A000 || fctl == 0x0C000) {
-      //  Serial.println("DEAUTH");
-      itrfordeauth = memfordeauth.find(addr_a);
-      if (itrfordeauth == memfordeauth.end())
-      {
-        memfordeauth[addr_a] = 1;
-      }
-      else
-      {
-        temp1 = (int)(itrfordeauth->second + 1);
-        memfordeauth[addr_a] = itrfordeauth->second + 1;
-        if (configDone == true && trainingend == false)
-        {
-            if (temp1 > deauthCountMax)
-            {
-              deauthCountMax = temp1;
-            }
-        }
-        else if (configDone == true && trainingend == true)
-        {
-          if (temp1 > deauthCountMax)
-          {
-            found = true;
-            Serial.println("Alert now deauth =");
-            Serial.println(temp1);
-            delay(4000);
-            TD32_Set_Firebase("Project/attack", "deauthentication");
-            delay(4000);
-          }
-        }
-      }
-    }
-    if (fctl == 0x08000) {
-      itrforbeacon = memforbeacon.find(addr_b);
-      if (itrforbeacon == memforbeacon.end())
-      {
-        memforbeacon[addr_b] = 1;
-      }
-      else
-      {
-        temp2 = (int)(itrforbeacon->second + 1);
-        memforbeacon[addr_b] = itrforbeacon->second + 1;
-
-        if (configDone == true && trainingend == false)
-        {
-            if (temp2 > beaconCountMax)
-            {
-              beaconCountMax = temp2;
-            } 
-        }
-        else if (configDone == true && trainingend == true)
-        {
-          if (temp2 > beaconCountMax * 5)
-          {
-            found = true;
-            Serial.println("Alert now beacon =");
-            Serial.println(temp2);
-            delay(4000);
-            TD32_Set_Firebase("Project/attack", "beacon frame spoofing");
-            delay(4000);
-          }
-        }
-      }
-    }
-    if (fctl == 0x04000 ) {
-
-      itrforprobe = memforprobe.find(addr_a);
-      if (itrforprobe == memforprobe.end())
-      {
-        memforprobe[addr_a] = 1;
-      }
-      else
-      {
-        temp3 = (int)(itrforprobe->second + 1);
-        memforprobe[addr_a] = itrforprobe->second + 1;
-        if (configDone == true && trainingend == false)
-        {
-            if (temp3 > probeCountMax)
-            {
-              probeCountMax = temp3;
-            }
-        }
-        else if (configDone == true && trainingend == true)
-        {
-          if (temp3 > probeCountMax * 2)
-          {
-            found = true;
-            Serial.println("Alert now probe =");
-            Serial.println(temp3);
-            delay(4000);
-            TD32_Set_Firebase("Project/attack", "probe request");
-            delay(4000);
-          }
-        }
-      }
-    }
-  }
-}
-
-
-
-
-
-
-//BLUETOOTH
-#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-int dat;
-class CallBackFunction1: public BLECharacteristicCallbacks {
-    void onWrite(BLECharacteristic *pCharacteristic) {
-      std::string rxValue = pCharacteristic->getValue();
-      
-      if (rxValue.length() > 0)
-      {
-        Serial.println("Start recieving");
-        Serial.println("recieved:");
-        Serial.println(rxValue.c_str());
-
-        for (int i = 0; i < rxValue.length(); i++) {
-          dat = (int)rxValue[i];
-          Serial.println((int)rxValue[i]);
-        }
-
-        if (rxValue.length() == 1) {
-          if(dat == 4){
-              Serial.println("Start training");
-              // configDone = true;
-              // customizeDone = true;
-              dat = 0;
-          }else if(dat == 5){
-              Serial.println("Recieve customize value");
-              // configDone = true;
-              // customizeDone = false;
-              dat = 0;
-          } 
-        }
-        else if(rxValue.length() == 3)
-        {
-          deauthCountMax = (int)rxValue[0];
-          beaconCountMax = (int)rxValue[1];
-          probeCountMax = (int)rxValue[2];
-          Serial.print("set deauth: ");
-          Serial.println(deauthCountMax);
-          Serial.print("set beacon: ");
-          Serial.println(beaconCountMax);
-          Serial.print("set probe: ");
-          Serial.println(probeCountMax);
-          trainingend = true;
-          configDone = true;
-          customizeDone = true;
-        }
-
-
-
-        Serial.println(dat);
-        Serial.println("End recieving");
-      }
-    }
-};
 // ===== Setup ===== //
 void setup() {
-
   Serial.begin(SERIAL_BAUD); // Start serial communication
-  pinMode(LED, OUTPUT); // Enable LED pin
-  digitalWrite(LED, LOW);
-  Serial.begin(115200);
-  BLEDevice::init("WAD");
-  BLEServer *pServer = BLEDevice::createServer();
-  BLEService *pService = pServer->createService(SERVICE_UUID);
-  BLECharacteristic *pCharacteristic = pService->createCharacteristic(
-                                         CHARACTERISTIC_UUID,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE
-                                       );
 
-  //pCharacteristic->setValue("Hello World says Neil");
-  pCharacteristic->setCallbacks(new CallBackFunction1());
-  pService->start();
-  // BLEAdvertising *pAdvertising = pServer->getAdvertising();  // this still is working for backward compatibility
-  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-  pAdvertising->addServiceUUID(SERVICE_UUID);
-  pAdvertising->setScanResponse(true);
-  pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
-  pAdvertising->setMinPreferred(0x12);
-  BLEDevice::startAdvertising();
-  Serial.println("Characteristic defined! Now you can read it in your phone!");
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(SSID, PASSWORD);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.println("connecting to WIFI");
+  pinMode(LED, OUTPUT); // Enable LED pin
+  digitalWrite(LED, LED_INVERT);
+WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print(".");
+    delay(300);
   }
-  //TD32_Set_Firebase("name", "\"Trident_ESP32\"");
-  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  esp_wifi_init(&cfg);
-  esp_wifi_set_storage(WIFI_STORAGE_RAM);
-  //  esp_wifi_set_mode(WIFI_MODE_NULL);
-  esp_wifi_start();
-  esp_wifi_set_promiscuous(true);
-  esp_wifi_set_promiscuous_filter(&filt);
-  esp_wifi_set_promiscuous_rx_cb(&sniffer);
-  esp_wifi_set_channel(channels[0], WIFI_SECOND_CHAN_NONE);
+Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+//Firebase.pushTimestamp(firebaseData,"/Deauth/1");
+WiFi.disconnect();                   // Disconnect from any saved or active WiFi connections
+//  wifi_set_opmode(STATION_MODE);       // Set device to client/station mode
+  wifi_set_promiscuous_rx_cb(sniffer); // Set sniffer function
+  wifi_set_channel(channels[0]);        // Set channel
+  wifi_promiscuous_enable(true);       // Enable sniffer
 
   Serial.println("Started \\o/");
 }
 
-
-void detectAttack() {
-  unsigned long current_time = millis(); // Get current time (in ms)
-
-  // Update each second (or scan-time-per-channel * channel-range)
-  if (current_time - update_time >= (sizeof(channels)*CH_TIME)) {
-    update_time = current_time; // Update time variable
-    if (configDone == false)
+// ===== Loop ===== //
+void loop() {
+  unsigned long current_time = millis();
+  if (current_time - update_time >= (sizeof(channels)*CH_TIME) * 10){
+    update_time = current_time;
+    wifi_promiscuous_enable(false);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    Serial.print("Connecting to Wi-Fi");
+    while (WiFi.status() != WL_CONNECTED)
     {
-      Serial.println("waiting");
+      Serial.print(".");
+      delay(300);
     }
-
-    //****When detected deauth packets exceed the minimum allowed number*****
-
-    if (configDone == true && trainingend == false)
-    {
-          if(customizeDone == true){
-            count++;  
-          }else{
-           delay(4000);
-           TD32_Set_Firebase("Project/deauthmax", String(deauthCountMax)); 
-           delay(4000);
-           TD32_Set_Firebase("Project/beaconmax", String(beaconCountMax));
-           delay(4000);
-           TD32_Set_Firebase("Project/probemax", String(probeCountMax));
-           delay(4000);
-          }
-          Serial.println("count=");
-          Serial.println(count);
-          Serial.println("deauthMax=");
-          Serial.println(deauthCountMax);
-          Serial.println("beaconMax=");
-          Serial.println(beaconCountMax);
-          Serial.println("probeMax=");
-          Serial.println(probeCountMax);
-    
-          memforbeacon.clear();
-          memfordeauth.clear();
-          memforprobe.clear();
-          if (count == 10)
-          {
-            if (deauthCountMax < 10)
-            {
-              deauthCountMax = 10;
-            }
-            if (beaconCountMax < 50)
-            {
-              beaconCountMax = 50;
-            }
-            if (probeCountMax < 30)
-            {
-              probeCountMax = 30;
-            }
-            //delay(4000);
-            //TD32_Push_Firebase("Project/train", String(deauthCountMax));
-            //delay(4000);
-            delay(4000);
-           TD32_Set_Firebase("Project/deauthmax", String(deauthCountMax)); 
-           delay(4000);
-           TD32_Set_Firebase("Project/beaconmax", String(beaconCountMax));
-           delay(4000);
-           TD32_Set_Firebase("Project/probemax", String(probeCountMax));
-           delay(4000);
-            trainingend = true;
-          }    
-       
-      
+    Serial.println("");
+    Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+    while(!Firebase.getInt(firebaseData,"/count")){
+      Serial.println("get count failed, trying again");
     }
-    else if (trainingend == true)
-    {
-      if (period >= 5)
-      {
-        if (found == true)
-        {
-          Serial.println("found");
+    int count = firebaseData.intData();
+    int newCount = count + 1;
+    while(!Firebase.setInt(firebaseData,"/count",newCount)){
+      Serial.println("send new count failed, trying again");
+    }
+    while(!Firebase.setTimestamp(firebaseData,"/Monitor/" + String(count) + "/Time" )){
+      Serial.println("send time failed, trying again");
+    }
+    Serial.println("sending deauth record");
+    for(int i = 0;i < 100;i++){
+        if(arr1[i] != ""){
+          Firebase.pushTimestamp(firebaseData,"/Monitor/" + String(count) + "/Data/Deauth/" + arr1[i]); 
         }
-        else
-        {
-          Serial.println("not found");
-        }
-
-        memforbeacon.clear();
-        memfordeauth.clear();
-        memforprobe.clear();
-        found = false;
-        period = 0;
-      }
-
-      period++;
-
-
     }
-  }
-
-  //    //****When detected deauth packets exceed the minimum allowed number*****
-  //
-  //  //**************Channel hopping************************************
-  if (sizeof(channels) > 1 && current_time - ch_time >= CH_TIME) {
+    Serial.println("sending probe record");
+    for(int i = 0;i < 100;i++){
+        if(arr2[i] != ""){
+          Firebase.pushTimestamp(firebaseData,"/Monitor/" + String(count) + "/Data/Probe/" + arr2[i]); 
+        }  
+    }
+    WiFi.disconnect();
+    arr1c = 0;
+    arr2c = 0;
+    for(int i=0;i<100;i++){
+        arr1[i] = "";
+        arr2[i] = "";
+    }
+    wifi_promiscuous_enable(true);
+    if (sizeof(channels) > 1 && current_time - ch_time >= CH_TIME) {
     ch_time = current_time; // Update time variable
 
     // Get next channel
-    ch_index = (ch_index + 1) % (sizeof(channels) / sizeof(channels[0]));
+    ch_index = (ch_index+1) % (sizeof(channels)/sizeof(channels[0]));
     short ch = channels[ch_index];
 
     // Set channel
     //Serial.print("Set channel to ");
     //Serial.println(ch);
-    //    wifi_set_channel(ch);
-    esp_wifi_set_channel(ch, WIFI_SECOND_CHAN_NONE);
+    wifi_set_channel(ch);
   }
+  }
+
 }
 
-void loop() {
-  detectAttack();
+
+typedef struct
+{
+    signed rssi:8;            /**< signal intensity of packet */
+    unsigned rate:4;          /**< data rate */
+    unsigned is_group:1;
+    unsigned :1;              /**< reserve */
+    unsigned sig_mode:2;      /**< 0:is not 11n packet; 1:is 11n packet */
+    unsigned legacy_length:12;
+    unsigned damatch0:1;
+    unsigned damatch1:1;
+    unsigned bssidmatch0:1;
+    unsigned bssidmatch1:1;
+    unsigned mcs:7;           /**< if is 11n packet, shows the modulation(range from 0 to 76) */
+    unsigned cwb:1;           /**< if is 11n packet, shows if is HT40 packet or not */
+    unsigned HT_length:16;             /**< reserve */
+    unsigned smoothing:1;     /**< reserve */
+    unsigned not_sounding:1;  /**< reserve */
+    unsigned :1;              /**< reserve */
+    unsigned aggregation:1;   /**< Aggregation */
+    unsigned stbc:2;          /**< STBC */
+    unsigned fec_coding:1;    /**< Flag is set for 11n packets which are LDPC */
+    unsigned sgi:1;           /**< SGI */
+    unsigned rxend_state:8;
+    unsigned ampdu_cnt:8;     /**< ampdu cnt */
+    unsigned channel:4;       /**< which channel this packet in */
+    unsigned :4;              /**< reserve */
+    signed noise_floor:8;
+} wifi_pkt_rx_ctrl_t;
+
+typedef struct {
+    wifi_pkt_rx_ctrl_t rx_ctrl;
+    uint8 buf[112];
+    uint16 cnt;
+    uint16 len; //length of packet
+} wifi_pkt_mgmt_t;
+
+typedef struct {
+  uint16 length;
+  uint16 seq;
+  uint8  address3[6];
+} wifi_pkt_lenseq_t;
+
+typedef struct {
+    wifi_pkt_rx_ctrl_t rx_ctrl;
+    uint8_t  buf[36];
+    uint16_t cnt;
+    wifi_pkt_lenseq_t lenseq[1];
+} wifi_pkt_data_t;
+
+typedef struct {
+    wifi_pkt_rx_ctrl_t rx_ctrl; /**< metadata header */
+    uint8_t payload[0];       /**< Data or management payload. Length of payload is described by rx_ctrl.sig_len. Type of content determined by packet type argument of callback. */
+} wifi_promiscuous_pkt_t;
+
+typedef enum
+{
+    WIFI_PKT_MGMT,
+    WIFI_PKT_CTRL,
+    WIFI_PKT_DATA,
+    WIFI_PKT_MISC,
+} wifi_promiscuous_pkt_type_t;
+
+typedef enum
+{
+    ASSOCIATION_REQ,
+    ASSOCIATION_RES,
+    REASSOCIATION_REQ,
+    REASSOCIATION_RES,
+    PROBE_REQ,
+    PROBE_RES,
+    NU1,  /* ......................*/
+    NU2,  /* 0110, 0111 not used */
+    BEACON,
+    ATIM,
+    DISASSOCIATION,
+    AUTHENTICATION,
+    DEAUTHENTICATION,
+    ACTION,
+    ACTION_NACK,
+} wifi_mgmt_subtypes_t;
+
+typedef struct
+{
+  unsigned interval:16;
+  unsigned capability:16;
+  unsigned tag_number:8;
+  unsigned tag_length:8;
+  char ssid[0];
+  uint8 rates[1];
+} wifi_mgmt_beacon_t;
+
+typedef struct
+{
+    unsigned protocol:2;
+    unsigned type:2;
+    unsigned subtype:4;
+    unsigned to_ds:1;
+    unsigned from_ds:1;
+    unsigned more_frag:1;
+    unsigned retry:1;
+    unsigned pwr_mgmt:1;
+    unsigned more_data:1;
+    unsigned wep:1;
+    unsigned strict:1;
+} wifi_header_frame_control_t;
+
+/**
+ * Ref: https://github.com/lpodkalicki/blog/blob/master/esp32/016_wifi_sniffer/main/main.c
+ */
+typedef struct
+{
+    wifi_header_frame_control_t frame_ctrl;
+    //unsigned duration_id:16; /* !!!! ugly hack */
+    uint8_t addr1[6]; /* receiver address */
+    uint8_t addr2[6]; /* sender address */
+    uint8_t addr3[6]; /* filtering address */
+    unsigned sequence_ctrl:16;
+    uint8_t addr4[6]; /* optional */
+} wifi_ieee80211_mac_hdr_t;
+
+typedef struct
+{
+    wifi_ieee80211_mac_hdr_t hdr;
+    uint8_t payload[2]; /* network data ended with 4 bytes csum (CRC32) */
+} wifi_ieee80211_packet_t;
+
+void mac2str(const uint8_t* ptr, char* string)
+{
+    sprintf(string, "%02x:%02x:%02x:%02x:%02x:%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5]);
+  return;
 }
 
+// ===== Sniffer function ===== //
+void sniffer(uint8_t *buff, uint16_t len) {
+  if (!buff || len < 28) return; // Drop packets without MAC header
 
-////------------------------------------
-/**********************************************************
-   ฟังกชั่น TD32_Set_Firebase
-   สำหรับ ESP32 ใช้กำหนด ค่า value ให้ path ของ Firebase
-   โดย path อยู่ใน รูปแบบ เช่น "Room/Sensor/DHT/Humid" เป็นต้น
+  byte pkt_type = buff[12]; // second half of frame control field
+  byte* addr_a = &buff[16]; // first MAC address
+  byte* addr_b = &buff[22]; // second MAC address
 
-   ทั้ง path และ  value ต้องเป็น ข้อมูลประเภท String
-   และ คืนค่าฟังกชั่น กลับมาด้วย http code
+  // First layer: type cast the received buffer into our generic SDK structure
+  const wifi_promiscuous_pkt_t *ppkt = (wifi_promiscuous_pkt_t *)buff;
+  // Second layer: define pointer to where the actual 802.11 packet is within the structure
+  const wifi_ieee80211_packet_t *ipkt = (wifi_ieee80211_packet_t *)ppkt->payload;
+  // Third layer: define pointers to the 802.11 packet header and payload
+  const wifi_ieee80211_mac_hdr_t *hdr = &ipkt->hdr;
 
-   เช่น หากเชื่อมต่อไม่ได้ จะคืนค่าด้วย 404
-   หากกำหนดลงที่ Firebase สำเร็จ จะคืนค่า 200 เป็นต้น
-
- **********************************************************/
-// Root CA ของ https://www.firebaseio.com
-// ใช้ได้ตั้งแต่ 01/08/2018 17:21:49 GMT ถึง หมดอายุสิ้นสุด 27/03/2019 00:00:00 GMT
-const char* FIREBASE_ROOT_CA = \
-                               "-----BEGIN CERTIFICATE-----\n" \
-                               "MIIEXDCCA0SgAwIBAgINAeOpMBz8cgY4P5pTHTANBgkqhkiG9w0BAQsFADBMMSAw\n" \
-                               "HgYDVQQLExdHbG9iYWxTaWduIFJvb3QgQ0EgLSBSMjETMBEGA1UEChMKR2xvYmFs\n" \
-                               "U2lnbjETMBEGA1UEAxMKR2xvYmFsU2lnbjAeFw0xNzA2MTUwMDAwNDJaFw0yMTEy\n" \
-                               "MTUwMDAwNDJaMFQxCzAJBgNVBAYTAlVTMR4wHAYDVQQKExVHb29nbGUgVHJ1c3Qg\n" \
-                               "U2VydmljZXMxJTAjBgNVBAMTHEdvb2dsZSBJbnRlcm5ldCBBdXRob3JpdHkgRzMw\n" \
-                               "ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDKUkvqHv/OJGuo2nIYaNVW\n" \
-                               "XQ5IWi01CXZaz6TIHLGp/lOJ+600/4hbn7vn6AAB3DVzdQOts7G5pH0rJnnOFUAK\n" \
-                               "71G4nzKMfHCGUksW/mona+Y2emJQ2N+aicwJKetPKRSIgAuPOB6Aahh8Hb2XO3h9\n" \
-                               "RUk2T0HNouB2VzxoMXlkyW7XUR5mw6JkLHnA52XDVoRTWkNty5oCINLvGmnRsJ1z\n" \
-                               "ouAqYGVQMc/7sy+/EYhALrVJEA8KbtyX+r8snwU5C1hUrwaW6MWOARa8qBpNQcWT\n" \
-                               "kaIeoYvy/sGIJEmjR0vFEwHdp1cSaWIr6/4g72n7OqXwfinu7ZYW97EfoOSQJeAz\n" \
-                               "AgMBAAGjggEzMIIBLzAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0lBBYwFAYIKwYBBQUH\n" \
-                               "AwEGCCsGAQUFBwMCMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFHfCuFCa\n" \
-                               "Z3Z2sS3ChtCDoH6mfrpLMB8GA1UdIwQYMBaAFJviB1dnHB7AagbeWbSaLd/cGYYu\n" \
-                               "MDUGCCsGAQUFBwEBBCkwJzAlBggrBgEFBQcwAYYZaHR0cDovL29jc3AucGtpLmdv\n" \
-                               "b2cvZ3NyMjAyBgNVHR8EKzApMCegJaAjhiFodHRwOi8vY3JsLnBraS5nb29nL2dz\n" \
-                               "cjIvZ3NyMi5jcmwwPwYDVR0gBDgwNjA0BgZngQwBAgIwKjAoBggrBgEFBQcCARYc\n" \
-                               "aHR0cHM6Ly9wa2kuZ29vZy9yZXBvc2l0b3J5LzANBgkqhkiG9w0BAQsFAAOCAQEA\n" \
-                               "HLeJluRT7bvs26gyAZ8so81trUISd7O45skDUmAge1cnxhG1P2cNmSxbWsoiCt2e\n" \
-                               "ux9LSD+PAj2LIYRFHW31/6xoic1k4tbWXkDCjir37xTTNqRAMPUyFRWSdvt+nlPq\n" \
-                               "wnb8Oa2I/maSJukcxDjNSfpDh/Bd1lZNgdd/8cLdsE3+wypufJ9uXO1iQpnh9zbu\n" \
-                               "FIwsIONGl1p3A8CgxkqI/UAih3JaGOqcpcdaCIzkBaR9uYQ1X4k2Vg5APRLouzVy\n" \
-                               "7a8IVk6wuy6pm+T7HT4LY8ibS5FEZlfAFLSW8NwsVz9SBK2Vqn1N0PIMn5xA6NZV\n" \
-                               "c7o835DLAFshEWfC7TIe3g==\n" \
-                               "-----END CERTIFICATE-----\n";
-
-int TD32_Set_Firebase(String path, String value, bool push ) {
-  WiFiClientSecure ssl_client;
-  String host = String(FIREBASE_HOST); host.replace("https://", "");
-  if (host[host.length() - 1] == '/' ) host = host.substring(0, host.length() - 1);
-  String resp = "";
-  int httpCode = 404; // Not Found
-
-  String firebase_method = (push) ? "POST " : "PUT ";
-  //  ssl_client.setCACert(FIREBASE_ROOT_CA);
-  if ( ssl_client.connect( host.c_str(), 443)) {
-    String uri = ((path[0] != '/') ? String("/") : String("")) + path + String(".json?auth=") + String(FIREBASE_AUTH);
-    String request = "";
-    request +=  firebase_method + uri + " HTTP/1.1\r\n";
-    request += "Host: " + host + "\r\n";
-    request += "User-Agent: TD_ESP32\r\n";
-    request += "Connection: close\r\n";
-    request += "Accept-Encoding: identity;q=1,chunked;q=0.1,*;q=0\r\n";
-    request += "Content-Length: " + String( value.length()) + "\r\n\r\n";
-    request += value;
-
-    ssl_client.print(request);
-    while ( ssl_client.connected() && !ssl_client.available()) delay(10);
-    if ( ssl_client.connected() && ssl_client.available() ) {
-      resp      = ssl_client.readStringUntil('\n');
-      httpCode  = resp.substring(resp.indexOf(" ") + 1, resp.indexOf(" ", resp.indexOf(" ") + 1)).toInt();
+  
+  // If captured packet is a deauthentication or dissassociaten frame
+  if (pkt_type == 0xA0 || pkt_type == 0xC0) {
+    char addr1[] = "00:00:00:00:00:00\0";
+    mac2str(hdr->addr1, addr1);
+    if(arr1c <= 99){
+      arr1[arr1c++] = String(addr1);
     }
-    ssl_client.stop();
-  }
-  else {
-    Serial.println("[Firebase] can't connect to Firebase Host");
-  }
-  return httpCode;
-}
-
-/**********************************************************
-   ฟังกชั่น TD32_Push_Firebase
-   สำหรับ ESP32 ใช้กำหนด ค่า value ให้ path ของ Firebase
-   แบบ Pushing data (เติมเข้าไปที่ path เรื่อยๆ ไม่ทับของเดิม)
-   โดย path อยู่ใน รูปแบบ เช่น "Room/Sensor/DHT/Humid" เป็นต้น
-
-   ทั้ง path และ  value ต้องเป็น ข้อมูลประเภท String
-   และ คืนค่าฟังกชั่น กลับมาด้วย http code
-
-   เช่น หากเชื่อมต่อไม่ได้ จะคืนค่าด้วย 404
-   หากกำหนดลงที่ Firebase สำเร็จ จะคืนค่า 200 เป็นต้น
-
- **********************************************************/
-int TD32_Push_Firebase(String path, String value) {
-  return TD32_Set_Firebase(path, value, true);
-}
-/**********************************************************
-   ฟังกชั่น TD32_Get_Firebase
-   ใช้สำหรับ EPS32 รับ ค่า value ของ path ที่อยู่บน Firebase
-   โดย path อยู่ใน รูปแบบ เช่น "Room/Sensor/DHT/Humid" เป็นต้น
-
-   path เป็น ข้อมูลประเภท String
-   คืนค่าของฟังกชั่น คือ value ของ path ที่กำหนด ในข้อมูลประเภท String
-
- **********************************************************/
-String TD32_Get_Firebase(String path ) {
-  WiFiClientSecure ssl_client;
-  String host = String(FIREBASE_HOST); host.replace("https://", "");
-  if (host[host.length() - 1] == '/' ) host = host.substring(0, host.length() - 1);
-  String resp = "";
-  String value = "";
-  //  ssl_client.setCACert(FIREBASE_ROOT_CA);
-  if ( ssl_client.connect( host.c_str(), 443)) {
-    String uri = ((path[0] != '/') ? String("/") : String("")) + path + String(".json?auth=") + String(FIREBASE_AUTH);
-    String request = "";
-    request += "GET " + uri + " HTTP/1.1\r\n";
-    request += "Host: " + host + "\r\n";
-    request += "User-Agent: TD_ESP32\r\n";
-    request += "Connection: close\r\n";
-    request += "Accept-Encoding: identity;q=1,chunked;q=0.1,*;q=0\r\n\r\n";
-
-    ssl_client.print( request);
-    while ( ssl_client.connected() && !ssl_client.available()) delay(10);
-    if ( ssl_client.connected() && ssl_client.available() ) {
-      while ( ssl_client.available()) resp += (char)ssl_client.read();
-      value = resp.substring( resp.lastIndexOf('\n') + 1, resp.length() - 1);
+  }else if(pkt_type == 0x40){
+    char addr2[] = "00:00:00:00:00:00\0";
+    mac2str(hdr->addr2, addr2);
+    if(arr2c <= 99){
+      arr2[arr2c++] = String(addr2); 
     }
-    ssl_client.stop();
-  } else {
-    Serial.println("[Firebase] can't connect to Firebase Host");
   }
-  return value;
 }

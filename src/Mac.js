@@ -233,6 +233,9 @@ export default class Deauth extends React.Component {
 					<div className='text-center mt-3'>
 						PROBE ATTACK FOUND:{this.state.probeAmount}
 					</div>
+					<div className='text-center mt-3'>
+						LASTED ATTACK:{ this.state.probeAmount > 0 ? Date.now() : null}
+					</div>
 				</div>
 			</div>
 		)
@@ -305,6 +308,9 @@ export default class Deauth extends React.Component {
 
 					<div className='text-center mt-3'>
 						DEAUTH ATTACK FOUND:{this.state.deauthAmount}
+					</div>
+<div className='text-center mt-3'>
+						LASTED ATTACK:{ this.state.deauthAmount > 0 ? Date.now() : null}
 					</div>
 				</div>
 			</div>
@@ -403,13 +409,32 @@ export default class Deauth extends React.Component {
 												)
 											}}
 										>
-											<div class='form-group'>
+											<div class="dropdown" style={{width:"100%"}}>
+												<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" style={{width:"100%"}} data-flip="false">
+													Select device
+												</button>
+												<div class="dropdown-menu" aria-labelledby="dropdownMenuButton" style={{width:"100%"}}>
+													{this.state.macList.map(
+														mac => (
+															<a className="dropdown-item" href="#" onClick={(e) => e.preventDefault()} style={{width:"100%"}}>
+																{mac}
+															</a>
+														)
+													)}
+													{/* <a class="dropdown-item" href="#">Action</a>
+													<a class="dropdown-item" href="#">Another action</a>
+													<a class="dropdown-item" href="#">Something else here</a> */}
+												</div>
+											</div>
+											{/* <div 
+											className="form row"
+											>
 												<label for='exampleFormControlSelect1'>
 													select device
 												</label>
 												<select
 													value={this.state.mac}
-													class='form-control'
+													className='custom-select'
 													id='exampleFormControlSelect1'
 													onChange={e => {
 														this.setState({
@@ -428,62 +453,13 @@ export default class Deauth extends React.Component {
 														)
 													)}
 												</select>
-											</div>
-											<button
+											</div> */}
+											{/* <button
 												type='submit'
-												class='btn btn-primary'
+												class='btn btn-primary mt-2'
 											>
 												Submit
-											</button>{" "}
-											{/* <div class='form-group'>
-												<label for='exampleInputEmail1'>
-													SELECT DEVICE
-												</label>
-												<input
-													type='email'
-													class='form-control'
-													id='exampleInputEmail1'
-													aria-describedby='emailHelp'
-													placeholder='Enter email'
-												/>
-												<small
-													id='emailHelp'
-													class='form-text text-muted'
-												>
-													We'll never share your email
-													with anyone else.
-												</small>
-											</div>
-											<div class='form-group'>
-												<label for='exampleInputPassword1'>
-													Password
-												</label>
-												<input
-													type='password'
-													class='form-control'
-													id='exampleInputPassword1'
-													placeholder='Password'
-												/>
-											</div>
-											<div class='form-group form-check'>
-												<input
-													type='checkbox'
-													class='form-check-input'
-													id='exampleCheck1'
-												/>
-												<label
-													class='form-check-label'
-													for='exampleCheck1'
-												>
-													Check me out
-												</label>
-											</div>
-											<button
-												type='submit'
-												class='btn btn-primary'
-											>
-												Submit
-											</button> */}
+											</button>{" "} */}
 										</form>
 										{/* {this.renderDeauth()} */}
 									</div>
@@ -500,52 +476,9 @@ export default class Deauth extends React.Component {
 
 	render() {
 		return (
-			<div>
-				<nav
-					class='navbar navbar-vertical fixed-left navbar-expand-md navbar-light bg-white'
-					id='sidenav-main'
-				>
-					<div class='container-fluid'>
-						<div
-							class='collapse navbar-collapse'
-							id='sidenav-collapse-main'
-						>
-							<div class='text-center'>
-								RECORDS AMOUNT:{this.state.items.length}
-							</div>
-							<hr />
-							<ul class='navbar-nav'>
-								<li class='nav-item'>
-									<Link class='nav-link ' to='/'>
-										{" "}
-										<i class='ni ni-tv-2 text-primary'></i>{" "}
-										Dashboard
-									</Link>
-								</li>
-								<li class='nav-item'>
-									<Link class='nav-link ' to='/deauth'>
-										<i class='ni ni-planet text-blue'></i>{" "}
-										Deauth
-									</Link>
-								</li>
-								<li class='nav-item'>
-									<Link class='nav-link ' to='/probe'>
-										<i class='ni ni-pin-3 text-orange'></i>{" "}
-										Probe
-									</Link>
-								</li>
-								<li class='nav-item'>
-									<Link class='nav-link ' to='/mac'>
-										<i class='ni ni-pin-3 text-orange'></i>{" "}
-										Device
-									</Link>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</nav>
+			<>
 				{this.renderDeauthPage()}
-			</div>
+			</>
 		)
 	}
 }

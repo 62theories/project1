@@ -222,6 +222,9 @@ export default class Attack extends React.Component {
 					<div className='text-center mt-3'>
 						PROBE ATTACK FOUND:{this.state.probeAmount}
 					</div>
+					<div className='text-center mt-3'>
+						LASTED ATTACK:{ this.state.probeAmount > 0 ? Date.now() : null}
+					</div>
 				</div>
 			</div>
 		)
@@ -295,6 +298,84 @@ export default class Attack extends React.Component {
 					<div className='text-center mt-3'>
 						DEAUTH ATTACK FOUND:{this.state.deauthAmount}
 					</div>
+<div className='text-center mt-3'>
+						LASTED ATTACK:{ this.state.deauthAmount > 0 ? Date.now() : null}
+					</div>
+				</div>
+			</div>
+		)
+	}
+	renderBeacon = () => {
+		return (
+			<div className='d-flex align-items-center justify-content-center'>
+				<div>
+					{this.state.items.length > 0 &&
+					this.state.deauthGraph.length > 0 ? (
+						<div style={{ height: "40vh", width: "50vw" }}>
+							<ResponsiveContainer width='100%' height='100%'>
+								<BarChart
+									data={this.state.deauthGraph}
+									margin={{
+										top: 5,
+										right: 30,
+										left: 20,
+										bottom: 5
+									}}
+								>
+									<CartesianGrid strokeDasharray='3 3' />
+									<XAxis dataKey='name' />
+									<YAxis />
+									<Tooltip />
+									<Legend />
+									<Bar dataKey='amount' fill='#FF5733' />
+								</BarChart>
+							</ResponsiveContainer>
+						</div>
+					) : (
+						<div
+							className='d-flex align-items-center justify-content-center'
+							style={{
+								height: "40vh",
+								width: "50vw"
+							}}
+						>
+							<div className='pt'>
+								<h1>NO BEACON FRAME SPOOFING ATTACK FOUND</h1>
+							</div>
+						</div>
+					)}
+					<div className='d-flex align-items-center justify-content-center'>
+						<form className='form-inline'>
+							<label>Detect Value </label>
+							<input
+								name='deauth'
+								type='number'
+								value={this.state.deauth}
+								placeholder='probe'
+								onChange={e => {
+									this.setState({
+										[e.target.name]: e.target.value
+									})
+								}}
+								autoComplete='off'
+								className='form-control ml-3'
+							/>
+							<button
+								type='button'
+								onClick={this.isDeauthAttack}
+								className='btn btn-success ml-3'
+							>
+								DETECT
+							</button>
+						</form>
+					</div>
+
+					<div className='text-center mt-3'>
+						BEACON FRAME SPOOFING ATTACK FOUND:{this.state.deauthAmount}
+					</div>
+<div className='text-center mt-3'>
+						LASTED ATTACK:{ this.state.deauthAmount > 0 ? Date.now() : null}
+					</div>
 				</div>
 			</div>
 		)
@@ -337,6 +418,12 @@ export default class Attack extends React.Component {
 									<div class='card-header text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4'></div>
 									<div class='card-body pt-0 pt-md-4'>
 										{this.renderDeauth()}
+									</div>
+								</div>
+								<div class='card card-profile shadow mt-4'>
+									<div class='card-header text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4'></div>
+									<div class='card-body pt-0 pt-md-4'>
+										{this.renderBeacon()}
 									</div>
 								</div>
 							</div>
@@ -394,52 +481,9 @@ export default class Attack extends React.Component {
 
 	render() {
 		return (
-			<div>
-				<nav
-					class='navbar navbar-vertical fixed-left navbar-expand-md navbar-light bg-white'
-					id='sidenav-main'
-				>
-					<div class='container-fluid'>
-						<div
-							class='collapse navbar-collapse'
-							id='sidenav-collapse-main'
-						>
-							<div class='text-center'>
-								RECORDS AMOUNT:{this.state.items.length}
-							</div>
-							<hr />
-							<ul class='navbar-nav'>
-								<li class='nav-item'>
-									<Link class='nav-link ' to='/'>
-										{" "}
-										<i class='ni ni-tv-2 text-primary'></i>{" "}
-										Dashboard
-									</Link>
-								</li>
-								<li class='nav-item'>
-									<Link class='nav-link ' to='/deauth'>
-										<i class='ni ni-planet text-blue'></i>{" "}
-										Deauth
-									</Link>
-								</li>
-								<li class='nav-item'>
-									<Link class='nav-link ' to='/probe'>
-										<i class='ni ni-pin-3 text-orange'></i>{" "}
-										Probe
-									</Link>
-								</li>
-								<li class='nav-item'>
-									<Link class='nav-link ' to='/mac'>
-										<i class='ni ni-pin-3 text-orange'></i>{" "}
-										Device
-									</Link>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</nav>
+			<>
 				{this.renderDashboard()}
-			</div>
+			</>
 		)
 	}
 }

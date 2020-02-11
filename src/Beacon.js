@@ -171,7 +171,7 @@ export default class Probe extends React.Component {
 							}}
 						>
 							<div className='pt'>
-								<h1>NO PROBE REQUEST ATTACK FOUND</h1>
+								<h1>NO BEACON FRAME SPOOFING ATTACK FOUND</h1>
 							</div>
 						</div>
 					)}
@@ -202,9 +202,9 @@ export default class Probe extends React.Component {
 					</div>
 
 					<div className='text-center mt-3'>
-						PROBE ATTACK FOUND:{this.state.probeAmount}
+						BEACON FRAME SPOOFING ATTACK FOUND:{this.state.probeAmount}
 					</div>
-					<div className='text-center mt-3'>
+                    <div className='text-center mt-3'>
 						LASTED ATTACK:{ this.state.probeAmount > 0 ? Date.now() : null}
 					</div>
 				</div>
@@ -356,7 +356,7 @@ export default class Probe extends React.Component {
 					<div class='row'>
 						<div class='col-lg-12 col-md-10'>
 							<h1 class='display-2 text-white'>
-								PROBE REQUEST FLOODING ATTACK
+								BEACON FRAME SPOOFING ATTACK
 							</h1>
 						</div>
 					</div>

@@ -602,6 +602,9 @@ export default class App extends React.Component {
 					<div className='text-center mt-3'>
 						PROBE ATTACK FOUND:{this.state.probeAmount}
 					</div>
+					<div className='text-center mt-3'>
+						LASTED ATTACK:{ this.state.probeAmount > 0 ? Date.now() : null}
+					</div>
 				</div>
 			</div>
 		)
@@ -676,6 +679,9 @@ export default class App extends React.Component {
 
 					<div className='text-center mt-3'>
 						DEAUTH ATTACK FOUND:{this.state.deauthAmount}
+					</div>
+<div className='text-center mt-3'>
+						LASTED ATTACK:{ this.state.deauthAmount > 0 ? Date.now() : null}
 					</div>
 				</div>
 			</div>

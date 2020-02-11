@@ -1,18 +1,7 @@
 import React from "react"
 import firebase from "./components/firebase.js"
-import {
-      BarChart,
-      Bar,
-      XAxis,
-      YAxis,
-      CartesianGrid,
-      Tooltip,
-      Legend,
-      ResponsiveContainer
-} from "recharts"
 import moment from "moment"
 import _ from "lodash"
-import { Link } from "react-router-dom"
 import "./assets/css/argon-dashboard.css"
 import Graph from "./Graph"
 export default class Beacon extends React.Component {

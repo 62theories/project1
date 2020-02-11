@@ -89,7 +89,7 @@ export default class App extends React.Component {
 					<Route path='/probe' exact={true} component={Probe} />
 					<Route path='/mac' exact={true} component={Mac} />
 					<Route path='/beacon' exact={true} component={Beacon}/>
-					<Route path='/attack' exact={true} component={Attack} />
+					<Route path='/attack/:slug' exact={true} component={Attack} />
 				</Switch>
 			</BrowserRouter>
 			</>

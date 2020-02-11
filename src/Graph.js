@@ -72,7 +72,6 @@ export default class Graph extends React.Component {
                                                 this.props.handleSubmit()
                                           }}
                                     >
-                                          <label>Detect Value </label>
                                           <input
                                                 name="probe"
                                                 type="number"

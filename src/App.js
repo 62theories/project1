@@ -68,7 +68,7 @@ export default class App extends React.Component {
 									</Link>
 								</li>
 								<li class='nav-item'>
-									<Link class='nav-link ' to='/probe'>
+									<Link class='nav-link ' to='/beacon'>
 										<i class='ni ni-pin-3 text-orange'></i>{" "}
 										<strong>Beacon</strong>
 									</Link>

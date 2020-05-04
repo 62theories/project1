@@ -1,57 +1,40 @@
 import React from "react"
 import { withRouter } from "react-router-dom"
+import firebase from "./config/firebase"
 
 class Navbar extends React.Component {
       render() {
             return (
                   <nav
-                        class="navbar navbar-expand-lg"
+                        className="navbar navbar-expand-lg navbar-light"
                         style={{ backgroundColor: "#f0f0f0" }}
                   >
-                        <a class="navbar-brand" href="#">
+                        <a
+                              className="navbar-brand"
+                              href="#"
+                              onClick={(e) => {
+                                    e.preventDefault()
+                                    this.props.history.push("/")
+                              }}
+                        >
                               Wifi Attack Detector
                         </a>
                         <button
-                              class="navbar-toggler"
+                              className="navbar-toggler"
                               type="button"
                               data-toggle="collapse"
-                              data-target="#navbarNav"
-                              aria-controls="navbarNav"
+                              data-target="#navbarSupportedContent"
+                              aria-controls="navbarSupportedContent"
                               aria-expanded="false"
                               aria-label="Toggle navigation"
                         >
-                              <span class="navbar-toggler-icon"></span>
+                              <span className="navbar-toggler-icon" />
                         </button>
-                        <div class="collapse navbar-collapse" id="navbarNav">
-                              <ul class="navbar-nav">
-                                    <li class="nav-item active">
-                                          <a
-                                                class="nav-link"
-                                                href="#"
-                                                onClick={(e) => {
-                                                      e.preventDefault()
-                                                      this.props.history.push(
-                                                            "/"
-                                                      )
-                                                }}
-                                          >
-                                                Home
-                                          </a>
-                                    </li>
-                                    <li class="nav-item">
-                                          <a
-                                                class="nav-link"
-                                                href="#"
-                                                onClick={(e) => {
-                                                      e.preventDefault()
-                                                      this.props.history.push(
-                                                            "/attack"
-                                                      )
-                                                }}
-                                          >
-                                                Attack
-                                          </a>
-                                    </li>
+                        <div
+                              className="collapse navbar-collapse"
+                              id="navbarSupportedContent"
+                        >
+                              <ul className="navbar-nav mr-auto">
                                     <li class="nav-item">
                                           <a
                                                 class="nav-link"
@@ -81,6 +64,16 @@ class Navbar extends React.Component {
                                           </a>
                                     </li>
                               </ul>
+
+                              <button
+                                    className="btn btn-outline-danger my-2 my-sm-0"
+                                    type="button"
+                                    onClick={() => {
+                                          firebase.database().ref("/").remove()
+                                    }}
+                              >
+                                    Reset
+                              </button>
                         </div>
                   </nav>
             )

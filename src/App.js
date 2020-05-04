@@ -14,7 +14,7 @@ export default class App extends React.Component {
                               <Navbar />
                               <Switch>
                                     <Route
-                                          path="/attack"
+                                          path="/"
                                           exact={true}
                                           component={Attack}
                                     />

@@ -1,13 +1,13 @@
 import React from "react"
 import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer
+      BarChart,
+      Bar,
+      XAxis,
+      YAxis,
+      CartesianGrid,
+      Tooltip,
+      Legend,
+      ResponsiveContainer,
 } from "recharts"
 export default class Graph extends React.Component {
       render() {
@@ -18,7 +18,7 @@ export default class Graph extends React.Component {
                                     <div
                                           style={{
                                                 height: "40vh",
-                                                width: "50vw"
+                                                width: "50vw",
                                           }}
                                     >
                                           <ResponsiveContainer
@@ -31,7 +31,7 @@ export default class Graph extends React.Component {
                                                             top: 5,
                                                             right: 30,
                                                             left: 20,
-                                                            bottom: 5
+                                                            bottom: 5,
                                                       }}
                                                 >
                                                       <CartesianGrid strokeDasharray="3 3" />
@@ -51,7 +51,7 @@ export default class Graph extends React.Component {
                                           className="d-flex align-items-center justify-content-center"
                                           style={{
                                                 height: "40vh",
-                                                width: "50vw"
+                                                width: "50vw",
                                           }}
                                     >
                                           <div className="pt">
@@ -67,7 +67,7 @@ export default class Graph extends React.Component {
                               <div className="d-flex align-items-center justify-content-center">
                                     <form
                                           className="form-inline"
-                                          onSubmit={e => {
+                                          onSubmit={(e) => {
                                                 e.preventDefault()
                                                 this.props.handleSubmit()
                                           }}

@@ -4,73 +4,73 @@ import Card from "./Card"
 import _ from "lodash"
 import moment from "moment"
 
-export default class Deauth extends React.Component {
+export default class Beacon extends React.Component {
       state = {
-            graphProbe: [],
-            conditionProbe: false,
-            attackNameProbe: "PROBE ATTACK",
-            countProbe: 0,
-            lastestProbe: "",
-            handleInputProbe: ({ target }) => {
+            graphBeacon: [],
+            conditionBeacon: false,
+            attackNameBeacon: "BEACON ATTACK",
+            countBeacon: 0,
+            lastestBeacon: "",
+            handleInputBeacon: ({ target }) => {
                   this.setState({
-                        inputProbe: target.value,
+                        inputBeacon: target.value,
                   })
             },
-            handleSubmitProbe: () => {
-                  if (this.state.inputProbe > -1) {
+            handleSubmitBeacon: () => {
+                  if (this.state.inputBeacon > -1) {
                         this.setState({
-                              specProbe: +this.state.inputProbe,
+                              specBeacon: +this.state.inputBeacon,
                         })
                   } else {
                         this.setState({
-                              conditionProbe: false,
-                              countProbe: 0,
-                              lastestProbe: "",
+                              conditionBeacon: false,
+                              countBeacon: 0,
+                              lastestBeacon: "",
                         })
                   }
             },
-            specProbe: 5,
-            inputProbe: 5,
+            specBeacon: 5,
+            inputBeacon: 5,
       }
       componentDidMount = async () => {
             const stateRef = firebase.database().ref("time")
             stateRef.on("value", async (snapshot) => {
                   firebase
                         .database()
-                        .ref("/probe")
+                        .ref("/beacon")
                         .orderByChild("count")
-                        .startAt(this.state.specProbe)
+                        .startAt(this.state.specBeacon)
                         .once("value", (snapshot) => {
                               if (snapshot.val()) {
                                     this.setState({
-                                          countProbe: _.size(snapshot.val()),
+                                          countBeacon: _.size(snapshot.val()),
                                     })
                                     if (_.size(snapshot.val()) > 0) {
                                           this.setState({
-                                                conditionProbe: true,
+                                                conditionBeacon: true,
                                           })
                                     } else {
                                           this.setState({
-                                                conditionProbe: false,
+                                                conditionBeacon: false,
                                           })
                                     }
                               } else {
                                     this.setState({
-                                          conditionProbe: false,
-                                          countProbe: 0,
+                                          conditionBeacon: false,
+                                          countBeacon: 0,
                                     })
                               }
                         })
                   firebase
                         .database()
-                        .ref("/probe")
+                        .ref("/beacon")
                         .orderByChild("count")
-                        .startAt(this.state.specProbe)
+                        .startAt(this.state.specBeacon)
                         .limitToLast(5)
                         .once("value", (snapshot) => {
                               if (snapshot.val()) {
                                     this.setState({
-                                          graphProbe: _.values(
+                                          graphBeacon: _.values(
                                                 snapshot.val()
                                           ).map((item) => {
                                                 return {
@@ -83,70 +83,70 @@ export default class Deauth extends React.Component {
                                     })
                               } else {
                                     this.setState({
-                                          graphProbe: [],
+                                          graphBeacon: [],
                                     })
                               }
                         })
                   firebase
                         .database()
-                        .ref("/probe")
+                        .ref("/beacon")
                         .orderByChild("count")
-                        .startAt(this.state.specProbe)
+                        .startAt(this.state.specBeacon)
                         .limitToLast(1)
                         .once("value", (snapshot) => {
                               if (snapshot.val()) {
                                     this.setState({
-                                          lastestProbe: moment(
+                                          lastestBeacon: moment(
                                                 _.values(snapshot.val())[0].time
                                           ).format("DD/MM/YYYY hh:mm:ss"),
                                     })
                               } else {
                                     this.setState({
-                                          lastestProbe: "",
+                                          lastestBeacon: "",
                                     })
                               }
                         })
             })
       }
       componentDidUpdate = (prevProps, prevState) => {
-            if (prevState.specProbe !== this.state.specProbe) {
+            if (prevState.specBeacon !== this.state.specBeacon) {
                   console.log("what")
                   firebase
                         .database()
-                        .ref("/probe")
+                        .ref("/beacon")
                         .orderByChild("count")
-                        .startAt(this.state.specProbe)
+                        .startAt(this.state.specBeacon)
                         .once("value", (snapshot) => {
                               if (snapshot.val()) {
                                     this.setState({
-                                          countProbe: _.size(snapshot.val()),
+                                          countBeacon: _.size(snapshot.val()),
                                     })
                                     if (_.size(snapshot.val()) > 0) {
                                           this.setState({
-                                                conditionProbe: true,
+                                                conditionBeacon: true,
                                           })
                                     } else {
                                           this.setState({
-                                                conditionProbe: false,
+                                                conditionBeacon: false,
                                           })
                                     }
                               } else {
                                     this.setState({
-                                          conditionProbe: false,
-                                          countProbe: 0,
+                                          conditionBeacon: false,
+                                          countBeacon: 0,
                                     })
                               }
                         })
                   firebase
                         .database()
-                        .ref("/probe")
+                        .ref("/beacon")
                         .orderByChild("count")
-                        .startAt(this.state.specProbe)
+                        .startAt(this.state.specBeacon)
                         .limitToLast(5)
                         .once("value", (snapshot) => {
                               if (snapshot.val()) {
                                     this.setState({
-                                          graphProbe: _.values(
+                                          graphBeacon: _.values(
                                                 snapshot.val()
                                           ).map((item) => {
                                                 return {
@@ -159,26 +159,26 @@ export default class Deauth extends React.Component {
                                     })
                               } else {
                                     this.setState({
-                                          graphProbe: [],
+                                          graphBeacon: [],
                                     })
                               }
                         })
                   firebase
                         .database()
-                        .ref("/probe")
+                        .ref("/beacon")
                         .orderByChild("count")
-                        .startAt(this.state.specProbe)
+                        .startAt(this.state.specBeacon)
                         .limitToLast(1)
                         .once("value", (snapshot) => {
                               if (snapshot.val()) {
                                     this.setState({
-                                          lastestProbe: moment(
+                                          lastestBeacon: moment(
                                                 _.values(snapshot.val())[0].time
                                           ).format("DD/MM/YYYY hh:mm:ss"),
                                     })
                               } else {
                                     this.setState({
-                                          lastestProbe: "",
+                                          lastestBeacon: "",
                                     })
                               }
                         })
@@ -187,15 +187,15 @@ export default class Deauth extends React.Component {
       render() {
             return (
                   <Card
-                        graph={this.state.graphProbe}
-                        condition={this.state.conditionProbe}
-                        attackName={this.state.attackNameProbe}
-                        count={this.state.countProbe}
-                        lastest={this.state.lastestProbe}
-                        handleInput={this.state.handleInputProbe}
-                        handleSubmit={this.state.handleSubmitProbe}
-                        spec={this.state.specProbe}
-                        input={this.state.inputProbe}
+                        graph={this.state.graphBeacon}
+                        condition={this.state.conditionBeacon}
+                        attackName={this.state.attackNameBeacon}
+                        count={this.state.countBeacon}
+                        lastest={this.state.lastestBeacon}
+                        handleInput={this.state.handleInputBeacon}
+                        handleSubmit={this.state.handleSubmitBeacon}
+                        spec={this.state.specBeacon}
+                        input={this.state.inputBeacon}
                   />
             )
       }

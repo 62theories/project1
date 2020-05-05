@@ -73,6 +73,98 @@ void loop() {
     printBeacon += String("\"") + String(beaconCount) + String("\"");
     printAmount += String("{") + printDeauth + String(",") + printProbe + String(",") + printBeacon + String("}");
     ToArduino.print(printAmount);
+    delay(30000);
+    String macDeauth = "";
+    String macProbe = "";
+    String macToArduino = "";
+    for (mapIt = mapDeauth.begin() ; mapIt != mapDeauth.end() ; mapIt++ ) {
+          if(macDeauth == "") {
+            macDeauth += String("{");
+            
+            macDeauth += String("\"");
+            macDeauth += String(mapIt->first);
+            macDeauth += String("\"");
+            
+            macDeauth += String(":");
+            
+            macDeauth += String("\"");
+            macDeauth += String(mapIt->second);
+            macDeauth += String("\"");
+            
+            macDeauth += String("}");
+          } else {
+            macDeauth += String(",");
+            macDeauth += String("{");
+            
+            macDeauth += String("\"");
+            macDeauth += String(mapIt->first);
+            macDeauth += String("\"");
+            
+            macDeauth += String(":");
+            
+            macDeauth += String("\"");
+            macDeauth += String(mapIt->second);
+            macDeauth += String("\"");
+            
+            macDeauth += String("}");
+          }
+    }
+    for (mapIt = mapProbe.begin() ; mapIt != mapProbe.end() ; mapIt++ ) {
+          if(macProbe == "") {
+            macProbe += String("{");
+            
+            macProbe += String("\"");
+            macProbe += String(mapIt->first);
+            macProbe += String("\"");
+            
+            macProbe += String(":");
+            
+            macProbe += String("\"");
+            macProbe += String(mapIt->second);
+            macProbe += String("\"");
+            
+            macProbe += String("}");
+          } else {
+            macProbe += String(",");
+            macProbe += String("{");
+            
+            macProbe += String("\"");
+            macProbe += String(mapIt->first);
+            macProbe += String("\"");
+            
+            macProbe += String(":");
+            
+            macProbe += String("\"");
+            macProbe += String(mapIt->second);
+            macProbe += String("\"");
+            
+            macProbe += String("}");
+          }
+    }
+    macToArduino += String("{");
+    if(macDeauth != "") {
+      macToArduino += String("\"");
+      macToArduino += "MACDEAUTH";
+      macToArduino += String("\"");
+      macToArduino += String(":");
+      macToArduino += String("[");
+      macToArduino += String(macDeauth);
+      macToArduino += String("]");
+    }
+    if(macProbe != "") {
+      if(macDeauth != "") {
+        macToArduino += String(",");
+      }
+      macToArduino += String("\"");
+      macToArduino += "MACPROBE";
+      macToArduino += String("\"");
+      macToArduino += String(":");
+      macToArduino += String("[");
+      macToArduino += String(macProbe);
+      macToArduino += String("]");
+    }
+    macToArduino += String("}");
+    ToArduino.print(macToArduino);
     mapDeauth.clear();
     mapProbe.clear();
     beaconCount = 0;

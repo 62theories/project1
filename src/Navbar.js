@@ -42,6 +42,20 @@ class Navbar extends React.Component {
                                                 onClick={(e) => {
                                                       e.preventDefault()
                                                       this.props.history.push(
+                                                            "/device"
+                                                      )
+                                                }}
+                                          >
+                                                Device
+                                          </a>
+                                    </li>
+                                    <li class="nav-item">
+                                          <a
+                                                class="nav-link"
+                                                href="#"
+                                                onClick={(e) => {
+                                                      e.preventDefault()
+                                                      this.props.history.push(
                                                             "/line"
                                                       )
                                                 }}

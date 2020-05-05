@@ -5,6 +5,8 @@ import Attack from "./Attack"
 import Line from "./Line"
 import Stat from "./Stat"
 import Navbar from "./Navbar"
+import Mac from "./Mac"
+import DeviceResult from "./DeviceResult"
 
 export default class App extends React.Component {
       render() {
@@ -27,6 +29,16 @@ export default class App extends React.Component {
                                           path="/stat"
                                           exact={true}
                                           component={Stat}
+                                    />
+                                    <Route
+                                          path="/device"
+                                          exact={true}
+                                          component={Mac}
+                                    />
+                                    <Route
+                                          path="/device/:id"
+                                          exact={true}
+                                          component={DeviceResult}
                                     />
                               </Switch>
                         </BrowserRouter>

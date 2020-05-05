@@ -316,10 +316,12 @@ void sniffer(uint8_t *buff, uint16_t len) {
 
   if (pkt_type == 0xA0 || pkt_type == 0xC0){
     char addr1[] = "00:00:00:00:00:00\0";
+    mac2str(hdr->addr1, addr1);
     mapDeauth[addr1] += 1;
     
   } else if(pkt_type == 0x40) {
     char addr1[] = "00:00:00:00:00:00\0";
+    mac2str(hdr->addr1, addr1);
     mapProbe[addr1] += 1;
     
   } else if(pkt_type == 0x80) {

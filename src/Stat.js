@@ -78,14 +78,18 @@ class Stat extends React.Component {
                               mean={
                                     this.state.countDeauth.length > 0
                                           ? mean(
-                                                  this.state.countDeauth
+                                                  this.state.countDeauth.filter(
+                                                        (item) => item > 0
+                                                  )
                                             ).toFixed(0)
                                           : 0
                               }
                               median={
                                     this.state.countDeauth.length > 0
                                           ? median(
-                                                  this.state.countDeauth
+                                                  this.state.countDeauth.filter(
+                                                        (item) => item > 0
+                                                  )
                                             ).toFixed(0)
                                           : 0
                               }
@@ -101,15 +105,19 @@ class Stat extends React.Component {
                               name="Probe Attack"
                               mean={
                                     this.state.countProbe.length > 0
-                                          ? mean(this.state.countProbe).toFixed(
-                                                  0
-                                            )
+                                          ? mean(
+                                                  this.state.countProbe.filter(
+                                                        (item) => item > 0
+                                                  )
+                                            ).toFixed(0)
                                           : 0
                               }
                               median={
                                     this.state.countProbe.length > 0
                                           ? median(
-                                                  this.state.countProbe
+                                                  this.state.countProbe.filter(
+                                                        (item) => item > 0
+                                                  )
                                             ).toFixed(0)
                                           : 0
                               }
@@ -126,14 +134,18 @@ class Stat extends React.Component {
                               mean={
                                     this.state.countBeacon.length > 0
                                           ? mean(
-                                                  this.state.countBeacon
+                                                  this.state.countBeacon.filter(
+                                                        (item) => item > 0
+                                                  )
                                             ).toFixed(0)
                                           : 0
                               }
                               median={
                                     this.state.countBeacon.length > 0
                                           ? median(
-                                                  this.state.countBeacon
+                                                  this.state.countBeacon.filter(
+                                                        (item) => item > 0
+                                                  )
                                             ).toFixed(0)
                                           : 0
                               }

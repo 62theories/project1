@@ -83,26 +83,30 @@ class Navbar extends React.Component {
                                     className="btn btn-outline-danger my-2 my-sm-0"
                                     type="button"
                                     onClick={() => {
-                                          firebase
-                                                .database()
-                                                .ref("/deauth")
-                                                .remove()
-                                          firebase
-                                                .database()
-                                                .ref("/probe")
-                                                .remove()
-                                          firebase
-                                                .database()
-                                                .ref("/beacon")
-                                                .remove()
-                                          firebase
-                                                .database()
-                                                .ref("/mac")
-                                                .remove()
-                                          firebase
-                                                .database()
-                                                .ref("/notification")
-                                                .remove()
+                                          Promise.all([
+                                                firebase
+                                                      .database()
+                                                      .ref("/deauth")
+                                                      .remove(),
+                                                firebase
+                                                      .database()
+                                                      .ref("/probe")
+                                                      .remove(),
+                                                firebase
+                                                      .database()
+                                                      .ref("/beacon")
+                                                      .remove(),
+                                                firebase
+                                                      .database()
+                                                      .ref("/mac")
+                                                      .remove(),
+                                                firebase
+                                                      .database()
+                                                      .ref("/notification")
+                                                      .remove(),
+                                          ]).then(() =>
+                                                window.location.reload()
+                                          )
                                     }}
                               >
                                     Reset

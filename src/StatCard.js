@@ -1,4 +1,5 @@
 import React from "react"
+import CountUp from "react-countup"
 
 export default class StatCard extends React.Component {
       render() {
@@ -16,7 +17,16 @@ export default class StatCard extends React.Component {
                                                       <h3>ค่าเฉลี่ย</h3>
                                                 </div>
                                                 <div>
-                                                      <h4>{this.props.mean}</h4>
+                                                      <h4>
+                                                            <CountUp
+                                                                  separator=","
+                                                                  end={
+                                                                        this
+                                                                              .props
+                                                                              .mean
+                                                                  }
+                                                            />
+                                                      </h4>
                                                 </div>
                                                 <div>
                                                       <h5>แพ็คเก็ต/นาที</h5>
@@ -28,7 +38,14 @@ export default class StatCard extends React.Component {
                                                 </div>
                                                 <div>
                                                       <h4>
-                                                            {this.props.median}
+                                                            <CountUp
+                                                                  separator=","
+                                                                  end={
+                                                                        this
+                                                                              .props
+                                                                              .median
+                                                                  }
+                                                            />
                                                       </h4>
                                                 </div>
                                                 <div>
@@ -40,7 +57,16 @@ export default class StatCard extends React.Component {
                                                       <h3>ค่าสูงสุด</h3>
                                                 </div>
                                                 <div>
-                                                      <h4>{this.props.max}</h4>
+                                                      <h4>
+                                                            <CountUp
+                                                                  separator=","
+                                                                  end={
+                                                                        this
+                                                                              .props
+                                                                              .max
+                                                                  }
+                                                            />
+                                                      </h4>
                                                 </div>
                                                 <div>
                                                       <h5>แพ็คเก็ต/นาที</h5>
